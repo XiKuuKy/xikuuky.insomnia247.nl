@@ -36,20 +36,15 @@ Cause satisfaction comes from inside
 
 I am DEEP INSIDE ur sista! motha! family memba!
 
-HO PRAY TO BE LIKE ME
-=====================
+# HO PRAY TO BE LIKE ME
 
-YO COME AT ME
-===============
+# YO COME AT ME
 
-U SAY PRAY FOR ME I SAY PLAY WITH ME
-=====================================
+# U SAY PRAY FOR ME I SAY PLAY WITH ME
 
-I SAY PRAY FOR THE DAY I BEHAVE LIKE drE
-==========================================
+# I SAY PRAY FOR THE DAY I BEHAVE LIKE drE
 
-LAY U LIL GRAY GAY LOOKING PAY DAY BOOKIN UNTIL I SLAY
-=====================================================
+# LAY U LIL GRAY GAY LOOKING PAY DAY BOOKIN UNTIL I SLAY
 
 Don't be so MAINSTREAM
 
