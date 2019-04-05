@@ -5,7 +5,7 @@ h1, h2, p {
 }
 
 code {
-  font: 100% source-code-pro, sans-serif;
+  font: 100% source-code-pro, monospace, sans-serif;
   color: #333;
   background-color: #eef;
 }
@@ -15,6 +15,14 @@ body {
   padding: 0;
   padding-top: 10px;
   text-align: center;
+}
+
+.block {
+  font: Fira Coda, monospace;
+  font-family: monospace;
+  text-align: left;
+  color: #333333;
+  background-color: #eeeeff;
 }
 
 /*# sourceMappingURL=index.css.map */

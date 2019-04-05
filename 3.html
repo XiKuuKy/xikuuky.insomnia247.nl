@@ -1,0 +1,202 @@
+<head>
+<title>
+0003 - Verb
+</title>
+<link rel="stylesheet" href="index.css"/>
+<meta charset="utf-8"/>
+</head>
+<h1 id="writing-a-simple-language">Writing a Simple Language</h1>
+<p>Today’s article will be a tutorial on how to write a simple array based programming language. An array-based programming language is a language which has a state stored as an array and the program can operate on this state. Our language won’t be useful for very much but might be an interesting thought experiment and will maybe be expounded on in later articles. Our language will use verbs which is a <code>function</code> that takes x amounts of <code>axioms</code> as arguments. For the most part we will probably only use singleton verbs (verbs that take one axiom as an argument).</p>
+<p>I’ll be writing the language in <code>perl6</code> so feel free to follow along:</p>
+<pre class="block"><code>my @state; # declare an empty array to act as our state
+my $fh = slurp(&quot;&lt;location of code&gt;&quot;); # open the full file contents of our code, make sure you give the file a path
+my @program = split(&quot;&quot;, $path);
+
+for @program -&gt; $char {
+    print $char
+}</code></pre>
+<p>This is the most basic thing we need to do to run our program, open a file and in this case we print its contents. Now let’s replace the contents of that for loop so that it does something useful…</p>
+<pre class="block"><code>for @program -&gt; $char {
+  @state.push(1) if $char ~~ &quot;+&quot;; # if our reader finds a `+` then add 1 to the state
+  @state.push(&quot;\n&quot;) if $char ~~ &quot;n&quot;; # if our reader finds a `n` then add a newline
+}
+
+my $finalState = join &#39;&#39;, @state; # put the state back together as a string
+print $finalState; # output final state</code></pre>
+<p>Now if you make your test file contain</p>
+<pre class="block"><code>+n</code></pre>
+<p>It should print <code>1</code> to the terminal. What do you think will happen if you add another <code>+</code> verbs to the file? It prints: <code>11</code>. Okay, cool enough but what if we want it to add two things? Replace the for block with:</p>
+<pre class="block"><code>for @program -&gt; $char {
+  @state.push(1) if $char ~~ &quot;+&quot;; # if our reader finds a `+` then add 1 to the state
+  @state.push(&quot;\n&quot;) if $char ~~ &quot;n&quot;; # if our reader finds a `n` then add a newline
+  if $char ~~ &quot;a&quot; { # if the reader finds a...
+    @state.push(@state.pop + @state.pop); # pop the last two values then add them
+  }
+}</code></pre>
+<p>Now when our reader program sees <code>a</code> it knows to add our ones together so if you change our verb test file to:</p>
+<pre class="block"><code>++an</code></pre>
+<p>it will output, <code>2</code> with a newline. Pretty cool, eh? Okay but if I want to add a bunch of numbers to the state then let’s have a shortcut which combines the verbs <code>+a</code> and call it <code>A</code>, see if you can figure out how to do it and then look at the code below.</p>
+<pre class="block"><code>if $char ~~ &quot;A&quot; { # if the reader finds `A`...
+  @state.push(@state.pop + 1); # pop the last value then add 1
+}</code></pre>
+<p>Add that to the for-loop and try it out by changing our verb file to <code>+An</code>. It should once again output <code>2</code>… but that isn’t a very Array style of doing things so let’s change that <code>if A</code> code to this:</p>
+<pre class="block"><code>if $char ~~ &quot;A&quot; { # if the reader finds `A`...
+  @state.push(1);
+  @state.push(@state.pop + @state.pop); # pop the last value then add 1
+}</code></pre>
+<p>Now it imitates exactly what happens if you run <code>+a</code>. Good I like that. But sadly, in its current state, we can’t write even a simple <code>Hello, World!</code> program <code>:(</code>. Let’s change that. If we can turn our numbers into letters we should be golden…</p>
+<pre class="block"><code>if $char ~~ &quot;p&quot; { # if the reader finds `p`
+  @state.push(@state.pop().chr); # push the popped value of the state to the state and turn it into a char
+}</code></pre>
+<p>now let’s make our program print ‘A’</p>
+<pre class="block"><code>+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAApn</code></pre>
+<p>If you copied the program correctly it should print ‘a’… but that’s very long so let’s make our language able to take some shortcuts. Let’s make it possible to add 5, 10, 50 and subtract 1, 5, 10 and 50</p>
+<pre class="block"><code># add numbers, inspired by roman numerals
+@state.push(5) if $char ~~ &quot;v&quot;;
+@state.push(10) if $char ~~ &quot;x&quot;;
+@state.push(50) if $char ~~ &quot;l&quot;;
+
+# subtract numbers...
+@state.push(-1) if $char ~~ &quot;I&quot;;
+@state.push(-5) if $char ~~ &quot;V&quot;;
+@state.push(-10) if $char ~~ &quot;X&quot;;
+@state.push(-50) if $char ~~ &quot;L&quot;;</code></pre>
+<p>The new <code>verb</code> code to print <code>a</code> is:</p>
+<pre class="block"><code>llaIaIaIapn</code></pre>
+<p>it works by pushing 50 to the state, pushing 50 again, adding the last two values, pushing <code>-1</code> and then adding three times. Now I want to add some “syntactic sugar” so that I can subtract and push at the same time.</p>
+<pre class="block"><code># syntactic sugar ...
+if $char ~~ &quot;s&quot; { # when we see `s`
+  @state.push(-1); # push -1 to the state
+  @state.push(@state.pop + @state.pop); # push the last two values of @state
+}</code></pre>
+<p>that should shorten our print <code>a</code> program to:</p>
+<pre class="block"><code>llassspn</code></pre>
+<p>But our original goal was to print “Hello, World!” so lets get the codes for each of those letters using a little bit of <code>perl6</code>.</p>
+<pre class="block"><code>my @hello = split &#39;&#39;, &quot;Hello, world!&quot;;
+@hello.map({.ord});</code></pre>
+<p>that will tell us the codes for each letter we want to input, that turns our <code>Hello, World!</code> program into</p>
+<pre class="block"><code>lxaxaAAp
+llaAp
+llaxassp
+llaxassp
+llaxaAp
+lVasp
+xxaxaAAp
+llaxaxasp
+llaxaAp
+llaxavasp
+llaxassp
+llap
+lXaXaAAAp
+n</code></pre>
+<p>I made our code easier to read by using newlines to show where each letter was written. I think we can improve on it by making a verb that pushes 100 for us. <code>@state.push(100) if $char ~~ "c";</code> … <code>@state.push(-100) if $char ~~ "C";</code>. Let’s shorten our verb code:</p>
+<pre class="block"><code>lxaxaAAp
+cAp
+cxassp
+cxassp
+cxaAp
+lVasp
+xxaxaAAp
+cxaxasp
+cxaAp
+cxavasp
+cxassp
+cp
+lXaXaAAAp
+n</code></pre>
+<p>Now, let’s add some other operators, <code>-</code> for subtraction, <code>\*</code> for multiplication, <code>/</code> for division, <code>%</code> for modulo/remainder.</p>
+<pre class="block"><code>if $char ~~ &quot;-&quot; { #subtract
+  @state.push(@state.pop - @state.pop);
+}
+if $char ~~ &quot;*&quot; { #multiply
+    @state.push(@state.pop * @state.pop);
+}
+if $char ~~ &quot;/&quot; { #divide
+    @state.push(@state.pop / @state.pop);
+}
+if $char ~~ &quot;%&quot; { #modulo/remainder
+    @state.push(@state.pop % @state.pop);
+}</code></pre>
+<p>Remember that because it pops the latest value first that means if you want to divide by 10 by 5 you have to <code>v</code> first then <code>x%</code></p>
+<pre class="block"><code>xvac%n
+xvac*n
+xvac/n
+xvac-n</code></pre>
+<p>This is an example of the operators with 15 and 100. The first line does <code>100 % 15</code>, the next line does <code>100 * 15</code>, then <code>100/15</code> and finally <code>100 - 15</code>.</p>
+<p>Now let’s add the ability to do conditions, first we will need some logical operators like <code>==, =/=, and, or, &lt;, &gt;, &lt;=, &gt;=, ~~, &lt;=&gt;</code></p>
+<pre class="block"><code># logical operators
+
+if $char ~~ &quot;=&quot; { # equality test
+    @state.push(@state.pop == @state.pop);
+}
+if $char ~~ &quot;!&quot; { # inequality test
+    @state.push(@state.pop != @state.pop);
+}
+if $char ~~ &quot;&amp;&quot; { # and
+    @state.push(@state.pop &amp;&amp; @state.pop);
+}
+if $char ~~ &quot;&lt;&quot; { # less than
+    @state.push(@state.pop &lt; @state.pop);
+}
+if $char ~~ &quot;&gt;&quot; { # greater than
+    @state.push(@state.pop &gt; @state.pop);
+}
+if $char ~~ &quot;_&quot; { # less than or equal to
+    @state.push(@state.pop &lt;= @state.pop);
+}
+if $char ~~ &quot;g&quot; { # greater than or equal to
+    @state.push(@state.pop &gt;= @state.pop);
+}
+if $char ~~ &quot;~&quot; { # smart equality test
+    @state.push(@state.pop ~~ @state.pop);
+}
+if $char ~~ &quot;?&quot; { # threeway
+    @state.push(@state.pop &lt;=&gt; @state.pop);
+}</code></pre>
+<p>We can then test it with:</p>
+<pre class="block"><code>++=n
+++!n
+++=++=&amp;n
+vl&lt;n
+vl&gt;n
+vv_n
+vlgn
+lvalva~n
+lv?n
+vl?n
+vv?n</code></pre>
+<p>Now lets implement a if statement of sorts… well have the program <code>die</code> if the statement is true and well make a unless statement that kills the program if the statement isn’t true.</p>
+<pre class="block"><code># if/unless die || control flow of program
+
+if $char ~~ &quot;i&quot; { # if verb
+  if @state.pop == True {
+    die &quot;if die&quot;; # dies if true
+  }
+}
+if $char ~~ &quot;u&quot; { # unless verb
+  unless @state.pop == True {
+    die &quot;unless die&quot; # dies if false
+  }
+}</code></pre>
+<p>We can test it with this program:</p>
+<pre class="block"><code>vc=u
+vc=i
+lxavapn</code></pre>
+<p>It should die, and tell us it was a <code>u</code> verb that killed it… then if you see, <code>A</code> the program didn’t work.</p>
+<p>Now let’s say I want to write a program that is actually useful… like a program that can do synthetic division on polynomials… well let’s try it out.</p>
+<p>First I’ll try writing the program in a more user friendly language, <code>perl6</code>…</p>
+<pre class="block"><code>my @polynomial = 1, 5, 6;
+my $div = -3;
+
+sub divide {
+  say ((((@polynomial[0] * $div) + @polynomial[1]) * $div) + @polynomial[2]);
+}
+
+divide;</code></pre>
+<p>Now lets look at what we need to do, first we need to start are program with the state of the polynomial. So let’s change state to <code>my @state = 6, 5, 1;</code> since our language tends to do things backwards. Then we’ll use this code. <code>Iss*aIss*an</code> to divide <code>x^2 +5x +6</code> (which in factored form is <code>(x+3)(x+2)</code>). It should return <code>0</code> since <code>x-3=0</code> means <code>x=3</code> so if we input <code>-3</code> then it will say <code>0</code> because it is a zero. If you think changing the state is cheating then we can just add the code <code>+vav+</code></p>
+<pre class="block"><code>+vav+
+Iss*aIss*an
++vav+
+Is*aIs*an</code></pre>
+<p>That code checks for both factors and returns zero, if you want you could even check for equality afterwards and then have the program <code>die</code> if it works.</p>
+<p>I think that is all for today, if you want to check out the final, completed language check it out on <a href="https://github.com/XiKuuKy/verb">Github</a></p>
